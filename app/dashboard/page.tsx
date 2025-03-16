@@ -20,13 +20,11 @@ export default function DashboardPage() {
   const [totalValue, setTotalValue] = useState(0);
   const [stocksValue, setStocksValue] = useState(0);
   const [cryptoValue, setCryptoValue] = useState(0);
-  const [insuranceValue, setInsuranceValue] = useState(0);
   const [web3Value, setWeb3Value] = useState(0);
   const [monthlyChanges, setMonthlyChanges] = useState({
     total: 0,
     stocks: 0,
-    crypto: 0,
-    insurance: 0
+    crypto: 0
   });
 
   useEffect(() => {
@@ -47,11 +45,10 @@ export default function DashboardPage() {
   
   const updatePortfolioValues = () => {
     // Get portfolio values
-    const { totalValue, stocksValue, cryptoValue, insuranceValue } = calculateTotalPortfolioValue();
+    const { totalValue, stocksValue, cryptoValue } = calculateTotalPortfolioValue();
     setTotalValue(totalValue);
     setStocksValue(stocksValue);
     setCryptoValue(cryptoValue);
-    setInsuranceValue(insuranceValue);
     
     // Get Web3 portfolio value
     const web3PortfolioValue = calculateWeb3PortfolioValue();
@@ -172,32 +169,6 @@ export default function DashboardPage() {
                   monthlyChanges.crypto >= 0 ? "text-accent" : "text-secondary"
                 }`}>
                   {monthlyChanges.crypto >= 0 ? '+' : ''}{monthlyChanges.crypto}% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Insurance
-                </CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
-                  <path d="M12 8v4M12 16h.01" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₹{insuranceValue.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">
-                  {monthlyChanges.insurance >= 0 ? '+' : ''}{monthlyChanges.insurance}% from last month
                 </p>
               </CardContent>
             </Card>

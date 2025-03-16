@@ -1,18 +1,29 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Shield } from "lucide-react"
-import { insuranceData, userInsurance } from "@/lib/data"
+import { insuranceData } from "@/lib/data"
 import AssetBuyModal from "@/components/asset-buy-modal"
+import { useToast } from "@/hooks/use-toast"
+import { saveTransaction } from "@/lib/portfolio-tracker"
 
-export default function InsurancePage() {
+const InsurancePage = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedAsset, setSelectedAsset] = useState<any>(null)
   const [showBuyModal, setShowBuyModal] = useState(false)
+  const [userInsurance, setUserInsurance] = useState<any[]>([])
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const savedInsurance = localStorage.getItem("userInsurance")
+    if (savedInsurance) {
+      setUserInsurance(JSON.parse(savedInsurance))
+    }
+  }, [])
 
   const filteredMarketInsurance = insuranceData.filter(
     (insurance) =>
@@ -29,6 +40,35 @@ export default function InsurancePage() {
   const handleBuy = (asset: any) => {
     setSelectedAsset(asset)
     setShowBuyModal(true)
+  }
+
+  const handleCancelPolicy = (insurance: any) => {
+    const savedInsurance = localStorage.getItem("userInsurance")
+    if (savedInsurance) {
+      const insuranceList = JSON.parse(savedInsurance)
+      const updatedList = insuranceList.filter((policy: any) => policy.id !== insurance.id)
+      localStorage.setItem("userInsurance", JSON.stringify(updatedList))
+      
+      saveTransaction({
+        id: `tx-${Date.now()}`,
+        assetId: insurance.id,
+        assetName: insurance.name,
+        assetType: "insurance",
+        type: "cancel",
+        quantity: 1,
+        price: insurance.premium,
+        totalValue: insurance.premium,
+        timestamp: Date.now()
+      })
+
+      setUserInsurance(updatedList)
+      
+      toast({
+        title: "Policy Cancelled",
+        description: `Your ${insurance.name} policy has been cancelled.`,
+        variant: "destructive"
+      })
+    }
   }
 
   return (
@@ -54,9 +94,19 @@ export default function InsurancePage() {
       </div>
 
       <Tabs defaultValue="market" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="market">Market</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+        <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100 p-1 rounded-lg">
+          <TabsTrigger 
+            value="market" 
+            className="rounded-md data-[state=active]:bg-purple-500 data-[state=active]:text-white transition-colors"
+          >
+            Market
+          </TabsTrigger>
+          <TabsTrigger 
+            value="portfolio" 
+            className="rounded-md data-[state=active]:bg-green-500 data-[state=active]:text-white transition-colors"
+          >
+            Portfolio
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="market" className="mt-6">
           <Card>
@@ -93,7 +143,11 @@ export default function InsurancePage() {
                       <div className="col-span-1 flex items-center text-gray-500">{insurance.coverage}</div>
                       <div className="col-span-1 flex items-center text-gray-500">{insurance.term}</div>
                       <div className="col-span-1 flex items-center justify-end">
-                        <Button size="sm" onClick={() => handleBuy(insurance)}>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleBuy(insurance)}
+                          className="bg-green-500 text-white hover:bg-green-600"
+                        >
                           Buy
                         </Button>
                       </div>
@@ -107,22 +161,26 @@ export default function InsurancePage() {
         <TabsContent value="portfolio" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Your Insurance Policies</CardTitle>
-              <CardDescription>Manage your insurance policies</CardDescription>
+              <CardTitle>Your Insurance Portfolio</CardTitle>
+              <CardDescription>View and manage your insurance policies</CardDescription>
             </CardHeader>
             <CardContent>
-              {filteredUserInsurance.length > 0 ? (
-                <div className="rounded-md border">
-                  <div className="grid grid-cols-7 p-4 text-sm font-medium text-gray-500">
-                    <div className="col-span-2">Name</div>
-                    <div className="col-span-1">Type</div>
-                    <div className="col-span-1">Premium</div>
-                    <div className="col-span-1">Coverage</div>
-                    <div className="col-span-1">Next Premium</div>
-                    <div className="col-span-1 text-right">Action</div>
-                  </div>
-                  <div className="divide-y">
-                    {filteredUserInsurance.map((insurance) => (
+              <div className="rounded-md border">
+                <div className="grid grid-cols-7 p-4 text-sm font-medium text-gray-500">
+                  <div className="col-span-2">Name</div>
+                  <div className="col-span-1">Type</div>
+                  <div className="col-span-1">Premium</div>
+                  <div className="col-span-1">Coverage</div>
+                  <div className="col-span-1">Term</div>
+                  <div className="col-span-1 text-right">Status</div>
+                </div>
+                <div className="divide-y">
+                  {filteredUserInsurance.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-gray-500">
+                      No insurance policies found in your portfolio
+                    </div>
+                  ) : (
+                    filteredUserInsurance.map((insurance) => (
                       <div key={insurance.id} className="grid grid-cols-7 p-4 text-sm">
                         <div className="col-span-2">
                           <div className="font-medium">{insurance.name}</div>
@@ -137,39 +195,48 @@ export default function InsurancePage() {
                         <div className="col-span-1 flex items-center font-medium">
                           ₹{insurance.premium.toLocaleString("en-IN")}
                         </div>
-                        <div className="col-span-1 flex items-center text-gray-500">{insurance.coverage}</div>
-                        <div className="col-span-1 flex items-center text-gray-500">{insurance.nextPremiumDate}</div>
-                        <div className="col-span-1 flex items-center justify-end">
-                          <Button size="sm" variant="outline">
-                            View Details
+                        <div className="col-span-1 flex items-center text-gray-500">
+                          {insurance.coverage}
+                        </div>
+                        <div className="col-span-1 flex items-center text-gray-500">
+                          {insurance.term}
+                        </div>
+                        <div className="col-span-1 flex items-center justify-end space-x-2">
+                          <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                            Active
+                          </span>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            className="ml-2 bg-red-50 text-red-600 hover:bg-red-100"
+                            onClick={() => handleCancelPolicy(insurance)}
+                          >
+                            Cancel Policy
                           </Button>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  )}
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-muted-foreground mb-4">You don't have any insurance policies yet.</p>
-                  <Button onClick={() => document.querySelector('[data-state="inactive"][value="market"]')?.click()}>
-                    Browse Market
-                  </Button>
-                </div>
-              )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {showBuyModal && selectedAsset && (
+      {showBuyModal && (
         <AssetBuyModal
           asset={selectedAsset}
           assetType="insurance"
           open={showBuyModal}
-          onClose={() => setShowBuyModal(false)}
+          onClose={() => {
+            setShowBuyModal(false)
+            setSelectedAsset(null)
+          }}
         />
       )}
     </div>
   )
 }
 
+export default InsurancePage

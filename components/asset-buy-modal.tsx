@@ -35,37 +35,46 @@ export default function AssetBuyModal({ asset, assetType, open, onClose }: Asset
     const portfolioKey = assetType === "stock" ? "userStocks" : assetType === "crypto" ? "userCrypto" : "userInsurance";
     const existingPortfolio = JSON.parse(localStorage.getItem(portfolioKey) || "[]");
     
-    // Check if asset already exists in portfolio
-    const assetIndex = existingPortfolio.findIndex((item: any) => item.id === asset.id);
-    const quantityNum = Number.parseFloat(quantity);
-    const totalAmount = getTotalAmount();
-    
-    if (assetIndex !== -1) {
-      // Update existing asset
-      const existingAsset = existingPortfolio[assetIndex];
-      const newQuantity = existingAsset.quantity + quantityNum;
-      const newTotalValue = existingAsset.totalValue + totalAmount;
-      const newAvgBuyPrice = newTotalValue / newQuantity;
-      
-      existingPortfolio[assetIndex] = {
-        ...existingAsset,
-        quantity: newQuantity,
-        totalValue: newTotalValue,
-        avgBuyPrice: newAvgBuyPrice,
-        // Calculate profit based on current price
-        profit: (asset.price * newQuantity) - newTotalValue,
-        profitPercentage: ((asset.price / newAvgBuyPrice) - 1) * 100
-      };
-    } else {
-      // Add new asset to portfolio
+    if (assetType === "insurance") {
+      // For insurance, we just add the policy to the portfolio
       existingPortfolio.push({
         ...asset,
-        quantity: quantityNum,
-        avgBuyPrice: asset.price,
-        totalValue: totalAmount,
-        profit: 0,
-        profitPercentage: 0
+        purchaseDate: Date.now(),
+        status: "Active"
       });
+    } else {
+      // Check if asset already exists in portfolio
+      const assetIndex = existingPortfolio.findIndex((item: any) => item.id === asset.id);
+      const quantityNum = Number.parseFloat(quantity);
+      const totalAmount = getTotalAmount();
+      
+      if (assetIndex !== -1) {
+        // Update existing asset
+        const existingAsset = existingPortfolio[assetIndex];
+        const newQuantity = existingAsset.quantity + quantityNum;
+        const newTotalValue = existingAsset.totalValue + totalAmount;
+        const newAvgBuyPrice = newTotalValue / newQuantity;
+        
+        existingPortfolio[assetIndex] = {
+          ...existingAsset,
+          quantity: newQuantity,
+          totalValue: newTotalValue,
+          avgBuyPrice: newAvgBuyPrice,
+          // Calculate profit based on current price
+          profit: (asset.price * newQuantity) - newTotalValue,
+          profitPercentage: ((asset.price / newAvgBuyPrice) - 1) * 100
+        };
+      } else {
+        // Add new asset to portfolio
+        existingPortfolio.push({
+          ...asset,
+          quantity: quantityNum,
+          avgBuyPrice: asset.price,
+          totalValue: totalAmount,
+          profit: 0,
+          profitPercentage: 0
+        });
+      }
     }
     
     // Save updated portfolio back to localStorage
@@ -78,9 +87,9 @@ export default function AssetBuyModal({ asset, assetType, open, onClose }: Asset
       assetName: asset.name,
       assetType: assetType,
       type: "buy",
-      quantity: quantityNum,
-      price: asset.price,
-      totalValue: totalAmount,
+      quantity: assetType === "insurance" ? 1 : Number.parseFloat(quantity),
+      price: assetType === "insurance" ? asset.premium : asset.price,
+      totalValue: getTotalAmount(),
       timestamp: Date.now()
     });
 
@@ -89,7 +98,9 @@ export default function AssetBuyModal({ asset, assetType, open, onClose }: Asset
       setIsLoading(false)
       toast({
         title: "Purchase Successful",
-        description: `You have successfully purchased ${quantity} ${assetType === "stock" ? "shares" : assetType === "crypto" ? "units" : "policy"} of ${asset.name}.`,
+        description: assetType === "insurance"
+          ? `You have successfully purchased the ${asset.name} insurance policy.`
+          : `You have successfully purchased ${quantity} ${assetType === "stock" ? "shares" : "units"} of ${asset.name}.`,
       })
       onClose()
       
@@ -99,12 +110,11 @@ export default function AssetBuyModal({ asset, assetType, open, onClose }: Asset
   }
 
   const getTotalAmount = () => {
-    if (!quantity || isNaN(Number.parseFloat(quantity))) return 0
-
     if (assetType === "insurance") {
       return asset.premium
     }
-
+    
+    if (!quantity || isNaN(Number.parseFloat(quantity))) return 0
     return Number.parseFloat(quantity) * asset.price
   }
 
@@ -114,31 +124,48 @@ export default function AssetBuyModal({ asset, assetType, open, onClose }: Asset
         <DialogHeader>
           <DialogTitle>Buy {asset.name}</DialogTitle>
           <DialogDescription>
-            Enter the quantity you want to buy. Current price: ₹{asset.price.toLocaleString()}
+            {assetType === "insurance" ? (
+              <>Annual Premium: ₹{asset.premium.toLocaleString("en-IN")}</>
+            ) : (
+              <>Enter the quantity you want to buy. Current price: ₹{asset.price.toLocaleString("en-IN")}</>
+            )}
           </DialogDescription>
         </DialogHeader>
 
-        <AssetPriceChart assetId={asset.id} assetType={assetType} />
+        {assetType !== "insurance" && <AssetPriceChart assetId={asset.id} assetType={assetType} />}
 
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="quantity" className="text-right">
-              Quantity
-            </Label>
-            <Input
-              id="quantity"
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              className="col-span-3"
-              min="0"
-              step={assetType === "crypto" ? "0.000001" : "1"}
-            />
-          </div>
+          {assetType !== "insurance" ? (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="quantity" className="text-right">
+                Quantity
+              </Label>
+              <Input
+                id="quantity"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="col-span-3"
+                min="0"
+                step={assetType === "crypto" ? "0.000001" : "1"}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex justify-between items-center">
+                <span>Coverage Amount:</span>
+                <span className="font-medium">{asset.coverage}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Term:</span>
+                <span className="font-medium">{asset.term}</span>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Total Amount</Label>
             <div className="col-span-3">
-              ₹{getTotalAmount().toLocaleString()}
+              ₹{getTotalAmount().toLocaleString("en-IN")}
             </div>
           </div>
         </div>
@@ -147,15 +174,13 @@ export default function AssetBuyModal({ asset, assetType, open, onClose }: Asset
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <div className="flex justify-end mt-4">
-            <Button
-              onClick={handleBuy}
-              className="bg-action-buy-light text-action-buy hover:bg-action-buy hover:text-white transition-colors"
-              disabled={!quantity || isNaN(Number.parseFloat(quantity)) || Number.parseFloat(quantity) <= 0 || isLoading}
-            >
-              {isLoading ? "Processing..." : "Buy Now"}
-            </Button>
-          </div>
+          <Button
+            onClick={handleBuy}
+            className="ml-2 bg-action-buy-light text-action-buy hover:bg-action-buy hover:text-white transition-colors"
+            disabled={assetType !== "insurance" && (!quantity || isNaN(Number.parseFloat(quantity)) || Number.parseFloat(quantity) <= 0) || isLoading}
+          >
+            {isLoading ? "Processing..." : "Buy Now"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

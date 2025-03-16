@@ -247,7 +247,7 @@ export default function StocksPage() {
                               <Button
                                 size="sm"
                                 onClick={() => handleBuy(stock)}
-                                className="bg-action-buy-light text-action-buy hover:bg-action-buy hover:text-white transition-colors"
+                                className="bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
                               >
                                 Buy
                               </Button>
@@ -321,10 +321,18 @@ export default function StocksPage() {
                               <span className="ml-1 text-xs">({stock.profitPercentage.toFixed(2)}%)</span>
                             </div>
                             <div className="col-span-1 flex items-center justify-end gap-2">
-                              <Button size="sm" variant="outline" onClick={() => handleBuy(stock)}>
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleBuy(stock)}
+                                className="bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
+                              >
                                 Buy
                               </Button>
-                              <Button size="sm" onClick={() => handleSell(stock)}>
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleSell(stock)}
+                                className="bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                              >
                                 Sell
                               </Button>
                             </div>

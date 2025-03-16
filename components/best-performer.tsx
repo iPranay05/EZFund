@@ -46,19 +46,6 @@ export function BestPerformer() {
         }
       });
 
-      // Check insurance
-      portfolio.insurance.forEach((insurance) => {
-        if (insurance.profitPercentage && insurance.profitPercentage > maxProfitPercentage) {
-          maxProfitPercentage = insurance.profitPercentage;
-          bestAsset = {
-            name: insurance.name,
-            type: 'Insurance',
-            profitPercentage: insurance.profitPercentage,
-            totalValue: insurance.totalValue
-          };
-        }
-      });
-
       setBestPerformer(bestAsset);
     };
 

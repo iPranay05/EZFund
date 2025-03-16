@@ -5,7 +5,7 @@ export interface Transaction {
   id: string;
   assetId: string;
   assetName: string;
-  assetType: "stock" | "crypto" | "insurance";
+  assetType: "stock" | "crypto";
   type: "buy" | "sell";
   quantity: number;
   price: number;
@@ -19,14 +19,12 @@ export interface PortfolioSnapshot {
   totalValue: number;
   stocksValue: number;
   cryptoValue: number;
-  insuranceValue: number;
 }
 
 // Asset allocation data for pie chart
 export interface AssetAllocation {
   stocks: number;
   crypto: number;
-  insurance: number;
 }
 
 // Asset interface
@@ -79,49 +77,42 @@ export function saveTransaction(transaction: Transaction): void {
   }
 }
 
-// Get user portfolio (combined stocks, crypto, insurance)
-export function getUserPortfolio(): { stocks: Asset[], crypto: Asset[], insurance: Asset[] } {
+// Get user portfolio (combined stocks and crypto)
+export function getUserPortfolio(): { stocks: Asset[], crypto: Asset[] } {
   const userStocks = JSON.parse(localStorage.getItem("userStocks") || "[]");
   const userCrypto = JSON.parse(localStorage.getItem("userCrypto") || "[]");
-  const userInsurance = JSON.parse(localStorage.getItem("userInsurance") || "[]");
   
   return {
     stocks: userStocks,
-    crypto: userCrypto,
-    insurance: userInsurance
+    crypto: userCrypto
   };
 }
 
 // Calculate total portfolio value
-export function calculateTotalPortfolioValue(): { totalValue: number, stocksValue: number, cryptoValue: number, insuranceValue: number } {
+export function calculateTotalPortfolioValue(): { totalValue: number, stocksValue: number, cryptoValue: number } {
   const portfolio = getUserPortfolio();
   
   const stocksValue = portfolio.stocks.reduce((total: number, stock: Asset) => total + (stock.totalValue || 0), 0);
   const cryptoValue = portfolio.crypto.reduce((total: number, crypto: Asset) => total + (crypto.totalValue || 0), 0);
-  const insuranceValue = portfolio.insurance.reduce((total: number, insurance: Asset) => total + (insurance.totalValue || 0), 0);
-  
-  const totalValue = stocksValue + cryptoValue + insuranceValue;
   
   return {
-    totalValue,
+    totalValue: stocksValue + cryptoValue,
     stocksValue,
-    cryptoValue,
-    insuranceValue
+    cryptoValue
   };
 }
 
 // Calculate asset allocation percentages
 export function calculateAssetAllocation(): AssetAllocation {
-  const { totalValue, stocksValue, cryptoValue, insuranceValue } = calculateTotalPortfolioValue();
+  const { totalValue, stocksValue, cryptoValue } = calculateTotalPortfolioValue();
   
   if (totalValue === 0) {
-    return { stocks: 0, crypto: 0, insurance: 0 };
+    return { stocks: 0, crypto: 0 };
   }
   
   return {
     stocks: Math.round((stocksValue / totalValue) * 100),
-    crypto: Math.round((cryptoValue / totalValue) * 100),
-    insurance: Math.round((insuranceValue / totalValue) * 100)
+    crypto: Math.round((cryptoValue / totalValue) * 100)
   };
 }
 
@@ -206,7 +197,7 @@ export async function updatePortfolioWithRealTimePrices(): Promise<boolean> {
 // Save portfolio snapshot for historical tracking
 export function updatePortfolioSnapshot(): void {
   try {
-    const { totalValue, stocksValue, cryptoValue, insuranceValue } = calculateTotalPortfolioValue();
+    const { totalValue, stocksValue, cryptoValue } = calculateTotalPortfolioValue();
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     
     // Get existing snapshots
@@ -219,8 +210,7 @@ export function updatePortfolioSnapshot(): void {
       date: today,
       totalValue,
       stocksValue,
-      cryptoValue,
-      insuranceValue
+      cryptoValue
     };
     
     if (todaySnapshotIndex !== -1) {
@@ -273,33 +263,27 @@ export function getPortfolioPerformanceData(months: number = 12): { labels: stri
 }
 
 // Calculate monthly change percentage
-export function calculateMonthlyChange(): { total: number, stocks: number, crypto: number, insurance: number } {
-  const portfolio = getUserPortfolio();
-  const currentValues = calculateTotalPortfolioValue();
-  
-  // Get last month's snapshot from localStorage
-  const lastMonthSnapshot = JSON.parse(localStorage.getItem("lastMonthSnapshot") || "null");
-  
-  if (!lastMonthSnapshot) {
+export function calculateMonthlyChange(): { total: number, stocks: number, crypto: number } {
+  try {
+    const snapshots = JSON.parse(localStorage.getItem("portfolioSnapshots") || "[]");
+    if (snapshots.length < 2) return { total: 0, stocks: 0, crypto: 0 };
+    
+    const currentSnapshot = snapshots[snapshots.length - 1];
+    const previousSnapshot = snapshots[snapshots.length - 2];
+    
+    const totalChange = ((currentSnapshot.totalValue - previousSnapshot.totalValue) / previousSnapshot.totalValue) * 100;
+    const stocksChange = ((currentSnapshot.stocksValue - previousSnapshot.stocksValue) / previousSnapshot.stocksValue) * 100;
+    const cryptoChange = ((currentSnapshot.cryptoValue - previousSnapshot.cryptoValue) / previousSnapshot.cryptoValue) * 100;
+    
     return {
-      total: 0,
-      stocks: 0,
-      crypto: 0,
-      insurance: 0
+      total: parseFloat(totalChange.toFixed(2)),
+      stocks: parseFloat(stocksChange.toFixed(2)),
+      crypto: parseFloat(cryptoChange.toFixed(2))
     };
+  } catch (error) {
+    console.error("Error calculating monthly change:", error);
+    return { total: 0, stocks: 0, crypto: 0 };
   }
-  
-  const calculateChange = (current: number, previous: number) => {
-    if (previous === 0) return 0;
-    return ((current - previous) / previous) * 100;
-  };
-  
-  return {
-    total: calculateChange(currentValues.totalValue, lastMonthSnapshot.totalValue),
-    stocks: calculateChange(currentValues.stocksValue, lastMonthSnapshot.stocksValue),
-    crypto: calculateChange(currentValues.cryptoValue, lastMonthSnapshot.cryptoValue),
-    insurance: calculateChange(currentValues.insuranceValue, lastMonthSnapshot.insuranceValue)
-  };
 }
 
 // Initialize portfolio tracker
