@@ -12,6 +12,7 @@ import AssetSellModal from "@/components/asset-sell-modal"
 import INRBalanceModal from "@/components/inr-balance-modal"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { MarketBestPerformers } from "@/components/market-best-performers"
+import TopTraders from "@/components/top-traders"
 
 export default function StocksPage() {
   const [marketStocks, setMarketStocks] = useState<any[]>([])
@@ -182,168 +183,176 @@ export default function StocksPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="market" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100 p-1 rounded-lg">
-          <TabsTrigger 
-            value="market"
-            className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-gray-600 transition-all"
-          >
-            Market
-          </TabsTrigger>
-          <TabsTrigger 
-            value="portfolio"
-            className="rounded-md data-[state=active]:bg-accent data-[state=active]:text-white data-[state=inactive]:text-gray-600 transition-all"
-          >
-            Portfolio
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="market" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Stock Market</CardTitle>
-              <CardDescription>Browse and buy stocks from the market</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <div className="grid grid-cols-7 p-4 text-sm font-medium text-gray-500">
-                  <div className="col-span-2">Name</div>
-                  <div className="col-span-1">Price</div>
-                  <div className="col-span-1">Change</div>
-                  <div className="col-span-1">Market Cap</div>
-                  <div className="col-span-1">Volume</div>
-                  <div className="col-span-1 text-right">Action</div>
-                </div>
-                <div className="divide-y">
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:w-3/4">
+          <Tabs defaultValue="market" className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100 p-1 rounded-lg">
+              <TabsTrigger 
+                value="market"
+                className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:text-gray-600 transition-all"
+              >
+                Market
+              </TabsTrigger>
+              <TabsTrigger 
+                value="portfolio"
+                className="rounded-md data-[state=active]:bg-accent data-[state=active]:text-white data-[state=inactive]:text-gray-600 transition-all"
+              >
+                Portfolio
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="market" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Stock Market</CardTitle>
+                  <CardDescription>Browse and buy stocks from the market</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-md border">
+                    <div className="grid grid-cols-7 p-4 text-sm font-medium text-gray-500">
+                      <div className="col-span-2">Name</div>
+                      <div className="col-span-1">Price</div>
+                      <div className="col-span-1">Change</div>
+                      <div className="col-span-1">Market Cap</div>
+                      <div className="col-span-1">Volume</div>
+                      <div className="col-span-1 text-right">Action</div>
+                    </div>
+                    <div className="divide-y">
+                      {isLoading ? (
+                        <div className="p-4 text-center">Loading real-time data...</div>
+                      ) : filteredMarketStocks.length > 0 ? (
+                        filteredMarketStocks.map((stock) => (
+                          <div key={stock.id} className="grid grid-cols-7 p-4 text-sm">
+                            <div className="col-span-2">
+                              <div className="font-medium">{stock.name}</div>
+                              <div className="text-xs text-gray-500">{stock.ticker}</div>
+                            </div>
+                            <div className="col-span-1 flex items-center font-medium">
+                              ₹{stock.price.toLocaleString("en-IN")}
+                            </div>
+                            <div
+                              className={`col-span-1 flex items-center ${
+                                stock.change >= 0 ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {stock.change >= 0 ? (
+                                <ArrowUpRight className="mr-1 h-4 w-4" />
+                              ) : (
+                                <ArrowDownRight className="mr-1 h-4 w-4" />
+                              )}
+                              {Math.abs(stock.change).toFixed(2)}%
+                            </div>
+                            <div className="col-span-1 flex items-center text-gray-500">{stock.marketCap}</div>
+                            <div className="col-span-1 flex items-center text-gray-500">{stock.volume}</div>
+                            <div className="col-span-1 flex items-center justify-end">
+                              <Button
+                                size="sm"
+                                onClick={() => handleBuy(stock)}
+                                className="bg-action-buy-light text-action-buy hover:bg-action-buy hover:text-white transition-colors"
+                              >
+                                Buy
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center">No stocks found</div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="portfolio" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Stock Portfolio</CardTitle>
+                  <CardDescription>Manage your stock investments</CardDescription>
+                </CardHeader>
+                <CardContent>
                   {isLoading ? (
-                    <div className="p-4 text-center">Loading real-time data...</div>
-                  ) : filteredMarketStocks.length > 0 ? (
-                    filteredMarketStocks.map((stock) => (
-                      <div key={stock.id} className="grid grid-cols-7 p-4 text-sm">
-                        <div className="col-span-2">
-                          <div className="font-medium">{stock.name}</div>
-                          <div className="text-xs text-gray-500">{stock.ticker}</div>
-                        </div>
-                        <div className="col-span-1 flex items-center font-medium">
-                          ₹{stock.price.toLocaleString("en-IN")}
-                        </div>
-                        <div
-                          className={`col-span-1 flex items-center ${
-                            stock.change >= 0 ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {stock.change >= 0 ? (
-                            <ArrowUpRight className="mr-1 h-4 w-4" />
-                          ) : (
-                            <ArrowDownRight className="mr-1 h-4 w-4" />
-                          )}
-                          {Math.abs(stock.change).toFixed(2)}%
-                        </div>
-                        <div className="col-span-1 flex items-center text-gray-500">{stock.marketCap}</div>
-                        <div className="col-span-1 flex items-center text-gray-500">{stock.volume}</div>
-                        <div className="col-span-1 flex items-center justify-end">
-                          <Button
-                            size="sm"
-                            onClick={() => handleBuy(stock)}
-                            className="bg-action-buy-light text-action-buy hover:bg-action-buy hover:text-white transition-colors"
-                          >
-                            Buy
-                          </Button>
-                        </div>
+                    <div className="p-4 text-center">Updating portfolio with real-time data...</div>
+                  ) : filteredUserStocks.length > 0 ? (
+                    <div className="rounded-md border">
+                      <div className="grid grid-cols-9 p-4 text-sm font-medium text-gray-500">
+                        <div className="col-span-2">Name</div>
+                        <div className="col-span-1">Price</div>
+                        <div className="col-span-1">Change</div>
+                        <div className="col-span-1">Quantity</div>
+                        <div className="col-span-1">Avg. Buy</div>
+                        <div className="col-span-1">Total Value</div>
+                        <div className="col-span-1">Profit/Loss</div>
+                        <div className="col-span-1 text-right">Action</div>
                       </div>
-                    ))
+                      <div className="divide-y">
+                        {filteredUserStocks.map((stock) => (
+                          <div key={stock.id} className="grid grid-cols-9 p-4 text-sm">
+                            <div className="col-span-2">
+                              <div className="font-medium">{stock.name}</div>
+                              <div className="text-xs text-gray-500">{stock.ticker}</div>
+                            </div>
+                            <div className="col-span-1 flex items-center font-medium">
+                              ₹{stock.price.toLocaleString("en-IN")}
+                            </div>
+                            <div
+                              className={`col-span-1 flex items-center ${
+                                stock.change >= 0 ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {stock.change >= 0 ? (
+                                <ArrowUpRight className="mr-1 h-4 w-4" />
+                              ) : (
+                                <ArrowDownRight className="mr-1 h-4 w-4" />
+                              )}
+                              {Math.abs(stock.change).toFixed(2)}%
+                            </div>
+                            <div className="col-span-1 flex items-center text-gray-500">{stock.quantity}</div>
+                            <div className="col-span-1 flex items-center text-gray-500">
+                              ₹{stock.avgBuyPrice.toLocaleString("en-IN")}
+                            </div>
+                            <div className="col-span-1 flex items-center font-medium">
+                              ₹{stock.totalValue.toLocaleString("en-IN")}
+                            </div>
+                            <div
+                              className={`col-span-1 flex items-center ${
+                                stock.profit >= 0 ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {stock.profit >= 0 ? "+" : ""}₹{stock.profit.toLocaleString("en-IN")}
+                              <span className="ml-1 text-xs">({stock.profitPercentage.toFixed(2)}%)</span>
+                            </div>
+                            <div className="col-span-1 flex items-center justify-end gap-2">
+                              <Button size="sm" variant="outline" onClick={() => handleBuy(stock)}>
+                                Buy
+                              </Button>
+                              <Button size="sm" onClick={() => handleSell(stock)}>
+                                Sell
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   ) : (
-                    <div className="p-4 text-center">No stocks found</div>
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <p className="text-muted-foreground mb-4">You don't own any stocks yet.</p>
+                      <Button onClick={() => {
+                        const marketTab = document.querySelector('[data-state="inactive"][value="market"]') as HTMLElement;
+                        marketTab?.click();
+                      }}>
+                        Browse Market
+                      </Button>
+                    </div>
                   )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="portfolio" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Stock Portfolio</CardTitle>
-              <CardDescription>Manage your stock investments</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="p-4 text-center">Updating portfolio with real-time data...</div>
-              ) : filteredUserStocks.length > 0 ? (
-                <div className="rounded-md border">
-                  <div className="grid grid-cols-9 p-4 text-sm font-medium text-gray-500">
-                    <div className="col-span-2">Name</div>
-                    <div className="col-span-1">Price</div>
-                    <div className="col-span-1">Change</div>
-                    <div className="col-span-1">Quantity</div>
-                    <div className="col-span-1">Avg. Buy</div>
-                    <div className="col-span-1">Total Value</div>
-                    <div className="col-span-1">Profit/Loss</div>
-                    <div className="col-span-1 text-right">Action</div>
-                  </div>
-                  <div className="divide-y">
-                    {filteredUserStocks.map((stock) => (
-                      <div key={stock.id} className="grid grid-cols-9 p-4 text-sm">
-                        <div className="col-span-2">
-                          <div className="font-medium">{stock.name}</div>
-                          <div className="text-xs text-gray-500">{stock.ticker}</div>
-                        </div>
-                        <div className="col-span-1 flex items-center font-medium">
-                          ₹{stock.price.toLocaleString("en-IN")}
-                        </div>
-                        <div
-                          className={`col-span-1 flex items-center ${
-                            stock.change >= 0 ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {stock.change >= 0 ? (
-                            <ArrowUpRight className="mr-1 h-4 w-4" />
-                          ) : (
-                            <ArrowDownRight className="mr-1 h-4 w-4" />
-                          )}
-                          {Math.abs(stock.change).toFixed(2)}%
-                        </div>
-                        <div className="col-span-1 flex items-center text-gray-500">{stock.quantity}</div>
-                        <div className="col-span-1 flex items-center text-gray-500">
-                          ₹{stock.avgBuyPrice.toLocaleString("en-IN")}
-                        </div>
-                        <div className="col-span-1 flex items-center font-medium">
-                          ₹{stock.totalValue.toLocaleString("en-IN")}
-                        </div>
-                        <div
-                          className={`col-span-1 flex items-center ${
-                            stock.profit >= 0 ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {stock.profit >= 0 ? "+" : ""}₹{stock.profit.toLocaleString("en-IN")}
-                          <span className="ml-1 text-xs">({stock.profitPercentage.toFixed(2)}%)</span>
-                        </div>
-                        <div className="col-span-1 flex items-center justify-end gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleBuy(stock)}>
-                            Buy
-                          </Button>
-                          <Button size="sm" onClick={() => handleSell(stock)}>
-                            Sell
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-muted-foreground mb-4">You don't own any stocks yet.</p>
-                  <Button onClick={() => {
-                    const marketTab = document.querySelector('[data-state="inactive"][value="market"]') as HTMLElement;
-                    marketTab?.click();
-                  }}>
-                    Browse Market
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        <div className="w-full md:w-1/4">
+          <TopTraders assetType="stock" />
+        </div>
+      </div>
 
       {showBuyModal && selectedAsset && (
         <AssetBuyModal

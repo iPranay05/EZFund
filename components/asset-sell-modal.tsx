@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
+import { saveTransaction } from "@/lib/portfolio-tracker"
 
 interface AssetSellModalProps {
   asset: any
@@ -36,6 +37,7 @@ export default function AssetSellModal({ asset, assetType, open, onClose }: Asse
     // Find the asset in the portfolio
     const assetIndex = existingPortfolio.findIndex((item: any) => item.id === asset.id);
     const quantityNum = Number.parseFloat(quantity);
+    const totalAmount = getTotalAmount();
     
     if (assetIndex !== -1) {
       const existingAsset = existingPortfolio[assetIndex];
@@ -60,6 +62,19 @@ export default function AssetSellModal({ asset, assetType, open, onClose }: Asse
       
       // Save updated portfolio back to localStorage
       localStorage.setItem(portfolioKey, JSON.stringify(existingPortfolio));
+      
+      // Save transaction record
+      saveTransaction({
+        id: `tx-${Date.now()}`,
+        assetId: asset.id,
+        assetName: asset.name,
+        assetType: assetType,
+        type: "sell",
+        quantity: quantityNum,
+        price: asset.price,
+        totalValue: totalAmount,
+        timestamp: Date.now()
+      });
     }
 
     // Simulate API call

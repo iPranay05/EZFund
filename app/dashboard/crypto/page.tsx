@@ -13,6 +13,7 @@ import AssetSellModal from "@/components/asset-sell-modal"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Web3WalletConnect from "@/components/web3-wallet-connect"
 import { MarketBestPerformers } from "@/components/market-best-performers"
+import TopTraders from "@/components/top-traders"
 
 export default function CryptoPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -327,8 +328,9 @@ export default function CryptoPage() {
           </Tabs>
         </div>
         
-        <div className="w-full md:w-1/4">
+        <div className="w-full md:w-1/4 space-y-6">
           <Web3WalletConnect />
+          <TopTraders assetType="crypto" />
         </div>
       </div>
 

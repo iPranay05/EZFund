@@ -12,6 +12,7 @@ import { TokenSwap } from "@/components/token-swap";
 import { DeFiYield } from "@/components/defi-yield";
 import { BlockchainTransactions } from "@/components/blockchain-transactions";
 import { BestPerformer } from "@/components/best-performer";
+import AddTestTransactionButton from "@/components/add-test-transaction-button";
 import { calculateTotalPortfolioValue, calculateMonthlyChange, initializePortfolioTracker } from "@/lib/portfolio-tracker";
 import { initializeWeb3Integration, calculateWeb3PortfolioValue } from "@/lib/web3-integration";
 
@@ -224,7 +225,10 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
             <Card className="col-span-1">
               <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Recent Transactions</CardTitle>
+                  <AddTestTransactionButton />
+                </div>
                 <CardDescription>
                   Your recent investment activities
                 </CardDescription>

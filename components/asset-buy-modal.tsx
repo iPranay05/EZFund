@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { AssetPriceChart } from "@/components/asset-price-chart"
+import { saveTransaction } from "@/lib/portfolio-tracker"
 
 interface AssetBuyModalProps {
   asset: any
@@ -69,6 +70,19 @@ export default function AssetBuyModal({ asset, assetType, open, onClose }: Asset
     
     // Save updated portfolio back to localStorage
     localStorage.setItem(portfolioKey, JSON.stringify(existingPortfolio));
+
+    // Save transaction record
+    saveTransaction({
+      id: `tx-${Date.now()}`,
+      assetId: asset.id,
+      assetName: asset.name,
+      assetType: assetType,
+      type: "buy",
+      quantity: quantityNum,
+      price: asset.price,
+      totalValue: totalAmount,
+      timestamp: Date.now()
+    });
 
     // Simulate API call
     setTimeout(() => {
