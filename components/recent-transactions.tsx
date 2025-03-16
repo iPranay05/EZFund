@@ -45,7 +45,8 @@ export default function RecentTransactions() {
     if (transaction.assetType === 'stock') {
       return `${transaction.quantity} shares`
     } else if (transaction.assetType === 'crypto') {
-      return `${transaction.quantity} ${transaction.assetId.toUpperCase()}`
+      const assetId = typeof transaction.assetId === 'string' ? transaction.assetId.toUpperCase() : transaction.assetId;
+      return `${transaction.quantity} ${assetId}`
     } else {
       return `${transaction.quantity} units`
     }

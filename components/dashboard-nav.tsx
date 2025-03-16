@@ -15,6 +15,7 @@ export default function DashboardNav() {
     { name: "Stocks", href: "/dashboard/stocks" },
     { name: "Crypto", href: "/dashboard/crypto" },
     { name: "Insurance", href: "/dashboard/insurance" },
+    { name: "Predictor", href: "/dashboard/predictor" },
   ]
 
   const handleLogout = () => {

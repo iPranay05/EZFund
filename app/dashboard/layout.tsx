@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import DashboardNav from "@/components/dashboard-nav"
 
 export const metadata: Metadata = {
-  title: "Investment Dashboard",
+  title: "EzFunds",
   description: "Track all your investment assets in one place",
 }
 

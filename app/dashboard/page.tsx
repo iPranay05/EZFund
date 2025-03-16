@@ -193,7 +193,7 @@ export default function DashboardPage() {
             </Card>
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
             <Card className="col-span-1">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -206,6 +206,51 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <RecentTransactions />
+              </CardContent>
+            </Card>
+            
+            <Card className="col-span-1 border border-accent/10 hover:border-accent/30 transition-colors">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    className="h-4 w-4 text-accent mr-2"
+                  >
+                    <path d="m2 9 3-3 3 3M13 18l3 3 3-3M9 2l3 3 3-3M18 13l3-3-3-3" />
+                  </svg>
+                  Investment Predictor
+                </CardTitle>
+                <CardDescription>
+                  Predict potential returns on crypto and stock investments
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-md">
+                      <div className="text-xl font-bold text-accent mb-1">Crypto</div>
+                      <div className="text-sm text-gray-500">Predict crypto returns</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-md">
+                      <div className="text-xl font-bold text-secondary mb-1">Stocks</div>
+                      <div className="text-sm text-gray-500">Predict stock returns</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <a 
+                      href="/dashboard/predictor" 
+                      className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                      Try Predictor
+                    </a>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
