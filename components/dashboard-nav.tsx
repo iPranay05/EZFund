@@ -48,7 +48,7 @@ export default function DashboardNav() {
               <div className="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center">
                 <User className="h-4 w-4 text-accent" />
               </div>
-              <span className="text-sm font-medium text-dark">Pranay</span>
+              <span className="text-sm font-medium text-dark">Areion</span>
             </div>
             <Button 
               variant="ghost" 
